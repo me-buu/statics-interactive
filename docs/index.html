@@ -196,6 +196,13 @@ select.sel{width:100%;font:inherit;font-size:16px;padding:7px 9px;border:1px sol
 @media (max-width:900px){nav.chnav{order:3;flex-basis:100%}nav.subnav{order:4;flex-wrap:nowrap;overflow-x:auto}nav.subnav a{white-space:nowrap}nav.chnav a span{display:none}#supbtns,#sup3btns{grid-template-columns:1fr}#predBtn{font-size:13px;padding:6px 8px}}
 .given{border:1.5px solid var(--line);border-left:4px solid var(--f);border-radius:10px;padding:8px 12px;margin:0 0 10px;background:var(--panel);font-size:15.5px;line-height:1.6}
 .given b.k{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+
+@media (min-width:901px){section.mod.on{grid-template-columns:minmax(0,1fr) var(--aw,clamp(400px,38vw,640px))}aside{position:relative}
+.aside-grip{position:absolute;left:-5px;top:0;bottom:0;width:10px;cursor:col-resize;z-index:5}.aside-grip::after{content:"";position:absolute;left:4px;top:50%;width:2px;height:44px;margin-top:-22px;border-radius:2px;background:var(--line)}.aside-grip:hover::after{background:var(--hl)}
+body.resizing{cursor:col-resize;user-select:none}}
+@media (max-width:900px){.aside-grip{display:none}}
+.eq{overflow-wrap:normal;max-width:100%;overflow-x:auto}
+table.ctab{display:block;overflow-x:auto;max-width:100%}
 </style>
 </head>
 <body>
@@ -2755,7 +2762,7 @@ function maxBody(c){const al=max4.al;const n3=x=>fmt(x,3);
   setGiven("axes",AXF.map(f=>`${f.u?`<i>${f.n}</i> (ไม่รู้ค่า)`:f.n}: ${AXD[f.n]}`).join("<br>"));
   const rows=AXF.map(f=>{const d=f.a-al;const mag=f.u?`<i>${f.n}</i>`:f.F;const cx=Math.cos(d*D2R),sy=Math.sin(d*D2R);
     const cell=(k)=>f.u?`${n3(k)}${mag}`:`${f.F} × ${n3(k)} = ${n3(f.F*k)}`;return `<tr><td>${f.n}</td><td>${AXW[f.n]}</td><td>${fmt(f.a,0)}° − ${al}° = ${fmt(d,0)}°</td><td>${cell(cx)}</td><td>${cell(sy)}</td></tr>`;}).join("");
-  const tbl=`<table class="ctab"><tr><th>แรง</th><th>ทิศ (จากแกน +x)</th><th>มุมจากแกน x′</th><th>ส่วนประกอบ x′ = F cos</th><th>ส่วนประกอบ y′ = F sin</th></tr>${rows}</table>`;
+  const tbl=`<table class="ctab"><tr><th>แรง</th><th>ทิศ (จาก +x)</th><th>มุมจาก x′</th><th>ตาม x′: F cos</th><th>ตาม y′: F sin</th></tr>${rows}</table>`;
   const term=(k,v)=>Math.abs(k)<0.02?`<span class="gone">${v} หายไป</span>`:`${k>=0?"+":"−"} ${n3(Math.abs(k))}${v}`;
   const ex=`<div class="eq">Σ<i>F</i><sub>x′</sub> = 0: &nbsp; ${n3(c.sx)} ${term(c.tx,"<i>T</i>")} ${term(c.cx,"<i>C</i>")} = 0</div><div class="eq">Σ<i>F</i><sub>y′</sub> = 0: &nbsp; ${n3(c.sy)} ${term(c.ty,"<i>T</i>")} ${term(c.cy,"<i>C</i>")} = 0</div>`;
   let sol;const z=k=>Math.abs(k)<0.02;
@@ -2899,6 +2906,21 @@ m0Go=makeGate("add",m0Go,()=>m0.step);m2Go=makeGate("uv",m2Go,()=>m2.step);m1Go=
 mcGo=makeGate("conc",mcGo,()=>mc.step);mmGo=makeGate("moment",mmGo,()=>mm.step);mxGo=makeGate("axis",mxGo,()=>mx.step);mkGo=makeGate("couple",mkGo,()=>mk.step);mtGo=makeGate("move",mtGo,()=>mt.step);
 m4Go=makeGate("solve",m4Go,()=>m4.step);mjGo=makeGate("joints",mjGo,()=>mj.step);mtcGo=makeGate("tc",mtcGo,()=>mtc.step);window.spGo=makeGate("separate",d=>STP.separate.go(d),()=>STP.separate.step);window.twGo=makeGate("twothree",d=>STP.twothree.go(d),()=>STP.twothree.step);window.cbGo=makeGate("cables3",d=>STP.cables3.go(d),()=>STP.cables3.step);window.blGo=makeGate("ball",d=>STP.ball.go(d),()=>STP.ball.step);document.querySelectorAll("#mod-solve [data-ex]").forEach(b=>b.addEventListener("click",()=>{for(const k of [...answered])if(k.startsWith("solve:"))answered.delete(k);hideQuiz("solve");}));
 mrGo=makeGate("reduce",mrGo,()=>mr.step);msGo=makeGate("single",msGo,()=>ms.step);mpGo=makeGate("parallel",mpGo,()=>mp.step);mwGo=makeGate("wrench",mwGo,()=>mw.step);
+/* ================= layout: wider, resizable text panel; keep formulas from breaking mid-expression ================= */
+const NB="\u00a0";
+function nwText(s){return s.replace(/(\u00a0){2,}/g,"\u2003").replace(/ +/g,NB).replace(/\u00a0([+−]|\u2192)\u00a0/g," $1"+NB).replace(/\u00a0=\u00a0/g,NB+"= ").replace(/,\u00a0/g,", ");}
+function nwEl(el){if(el.dataset.nw)return;el.dataset.nw="1";const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);const list=[];while(w.nextNode())list.push(w.currentNode);list.forEach(n=>{const v=nwText(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v;});}
+function nwScan(root){(root||document).querySelectorAll(".eq:not([data-nw]),table.ctab td:not([data-nw])").forEach(nwEl);}
+let nwT=null;new MutationObserver(()=>{if(nwT)return;nwT=requestAnimationFrame(()=>{nwT=null;nwScan();});}).observe(document.body,{childList:true,subtree:true});
+/* resizable text panel on wide screens */
+(function(){const KEY="statics-aside-w";let w=null;try{w=+localStorage.getItem(KEY)||null;}catch(e){}
+  const apply=v=>{if(v)document.documentElement.style.setProperty("--aw",v+"px");else document.documentElement.style.removeProperty("--aw");};apply(w);
+  document.querySelectorAll("section.mod > aside").forEach(a=>{const h=document.createElement("div");h.className="aside-grip";h.title="ลากเพื่อปรับความกว้างของแผงข้อความ (ดับเบิลคลิกเพื่อกลับค่าเดิม)";a.prepend(h);
+    h.addEventListener("pointerdown",e=>{e.preventDefault();h.setPointerCapture(e.pointerId);document.body.classList.add("resizing");
+      const mv=ev=>{const v=Math.max(340,Math.min(Math.round(window.innerWidth*0.7),Math.round(window.innerWidth-ev.clientX)));w=v;apply(v);};
+      const up=()=>{h.removeEventListener("pointermove",mv);h.removeEventListener("pointerup",up);document.body.classList.remove("resizing");try{localStorage.setItem(KEY,String(w));}catch(e){}window.dispatchEvent(new Event("resize"));};
+      h.addEventListener("pointermove",mv);h.addEventListener("pointerup",up);});
+    h.addEventListener("dblclick",()=>{w=null;apply(null);try{localStorage.removeItem(KEY);}catch(e){}});});})();
 </script>
 </body>
 </html>
